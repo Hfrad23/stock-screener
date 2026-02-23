@@ -1,12 +1,17 @@
 """Stock Screener — S&P 500 + QQQ Top 25 Valuation Dashboard"""
 
+import os
 import streamlit as st
+from dotenv import load_dotenv
+
+load_dotenv()
 
 from config.settings import WACC, TERMINAL_GROWTH, PROJECTION_YEARS
 from data.holdings import get_spy_top25, get_qqq_top25, get_all_tickers
 from data.fetcher import fetch_fundamentals, fetch_prices
 from analysis.valuation import run_valuation
 from ui.views import render_index_tab
+from ai.analyst import build_context, ask_analyst
 
 st.set_page_config(
     page_title="Stock Screener",
@@ -35,9 +40,9 @@ with st.sidebar:
     )
 
 # ── Tickers ───────────────────────────────────────────────────────────────────
-spy_tickers  = get_spy_top25()
-qqq_tickers  = get_qqq_top25()
-all_tickers  = get_all_tickers()
+spy_tickers   = get_spy_top25()
+qqq_tickers   = get_qqq_top25()
+all_tickers   = get_all_tickers()
 tickers_tuple = tuple(sorted(all_tickers))
 
 # ── Title ─────────────────────────────────────────────────────────────────────
@@ -52,7 +57,7 @@ with st.spinner("Loading prices…"):
 
 # ── Header row: timestamps + refresh buttons ──────────────────────────────────
 fund_ts  = max((f.fetched_at  for f in fundamentals), default=None) if fundamentals else None
-price_ts = max((p.updated_at for p in prices),       default=None) if prices       else None
+price_ts = max((p.updated_at for p in prices),        default=None) if prices       else None
 
 col_f, col_p, col_b1, col_b2 = st.columns([3, 3, 1.5, 2])
 with col_f:
@@ -81,8 +86,8 @@ if not prices:
     st.error("Failed to fetch prices. Check your connection and click Refresh Prices.")
     st.stop()
 
-# ── Valuation (fast — pure math, reruns on sidebar change) ────────────────────
-all_results    = run_valuation(fundamentals, prices, wacc, terminal_growth, projection_years)
+# ── Valuation ─────────────────────────────────────────────────────────────────
+all_results      = run_valuation(fundamentals, prices, wacc, terminal_growth, projection_years)
 ticker_to_result = {r.ticker: r for r in all_results}
 
 spy_results = sorted(
@@ -95,10 +100,62 @@ qqq_results = sorted(
 )
 
 # ── Tabs ──────────────────────────────────────────────────────────────────────
-tab_spy, tab_qqq = st.tabs(["S&P 500 Top 25", "QQQ Top 25"])
+tab_spy, tab_qqq, tab_ask = st.tabs(["S&P 500 Top 25", "QQQ Top 25", "Ask the Analyst"])
 
 with tab_spy:
     render_index_tab(spy_results, "S&P 500 Top 25")
 
 with tab_qqq:
     render_index_tab(qqq_results, "QQQ Top 25")
+
+with tab_ask:
+    _api_key = os.getenv("ANTHROPIC_API_KEY", "")
+    if not _api_key:
+        st.warning(
+            "No API key found. Add `ANTHROPIC_API_KEY=your_key` to a `.env` file "
+            "in the stock-screener directory, then restart the app."
+        )
+        st.stop()
+
+    st.subheader("Ask the Analyst")
+    st.caption(
+        "Ask anything about the stocks in this universe. "
+        "The analyst has access to all of today's fetched data — prices, multiples, "
+        "DCF values, growth rates, signals, and scores."
+    )
+    st.caption("Examples: *Is NVDA overvalued?* · *Which stock has the best PEG?* · *Compare AAPL vs MSFT* · *What are the highest-quality growth stocks here?*")
+
+    if "chat_history" not in st.session_state:
+        st.session_state.chat_history = []
+
+    if st.button("Clear conversation", key="clear_chat"):
+        st.session_state.chat_history = []
+        st.rerun()
+
+    # Build context once per session (all stocks, all metrics)
+    analyst_context = build_context(all_results)
+
+    # Render existing messages
+    for msg in st.session_state.chat_history:
+        with st.chat_message(msg["role"]):
+            st.markdown(msg["content"])
+
+    # New question
+    if question := st.chat_input("Ask about a stock or the universe…"):
+        st.session_state.chat_history.append({"role": "user", "content": question})
+        with st.chat_message("user"):
+            st.markdown(question)
+
+        with st.chat_message("assistant"):
+            with st.spinner("Analyzing…"):
+                try:
+                    answer = ask_analyst(
+                        question,
+                        analyst_context,
+                        st.session_state.chat_history[:-1],
+                    )
+                except Exception as e:
+                    answer = f"Error calling the API: {e}"
+            st.markdown(answer)
+
+        st.session_state.chat_history.append({"role": "assistant", "content": answer})

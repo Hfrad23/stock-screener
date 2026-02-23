@@ -1,10 +1,10 @@
-from typing import List, Optional
+from typing import List
 
 import pandas as pd
 import streamlit as st
 
 from config.settings import ValuationResult
-from ui.components import render_stock_expander
+from ui.components import render_stock_expander, render_metric_legend
 
 _SIGNAL_EMOJI = {
     "undervalued":       "🟢",
@@ -20,9 +20,29 @@ _ROW_BG = {
     "⚪": "",
 }
 
+# Column header tooltip definitions for the main table
+_COL_HELP = {
+    "Rank":      "Rank by composite score within this index (highest score = rank 1).",
+    "Ticker":    "Stock ticker symbol.",
+    "Company":   "Company name.",
+    "Sector":    "GICS sector classification.",
+    "Price":     "Current stock price (refreshes every 5 minutes).",
+    "DCF Value": "Discounted Cash Flow intrinsic value per share. Projects 5 years of free cash flow and discounts back at WACC. Adjust WACC and growth rate in the sidebar.",
+    "MoS":       "Margin of Safety — how far the current price is below the DCF intrinsic value. Positive = trading below intrinsic value (good). Green >25%, yellow -10% to 25%, red below -10%.",
+    "P/E":       "Price-to-Earnings (trailing 12 months). Lower = cheaper relative to profits. Value: green <20. Growth: green <35.",
+    "Fwd P/E":   "Forward Price-to-Earnings based on next 12 months analyst earnings estimates. A falling forward P/E (vs trailing) indicates expected earnings growth.",
+    "P/FCF":     "Price-to-Free-Cash-Flow. Market cap divided by trailing FCF. Often more reliable than P/E. Value: green <20. Growth: green <30.",
+    "EV/EBITDA": "Enterprise Value / EBITDA. Accounts for debt in the valuation — useful for comparing companies with different balance sheets. Value: green <15. Growth: green <25.",
+    "PEG":       "Price/Earnings-to-Growth. P/E divided by earnings growth rate. Accounts for the fact that fast growers deserve higher P/E. Below 1.0 = potentially undervalued vs growth.",
+    "Profile":   "Growth / Value / Blend classification. G = growth stock (adjusted scoring), V = value stock (traditional scoring), B = blend. Based on revenue growth, earnings growth, and P/E level.",
+    "5Y Est.":   "5-year price estimate. Projects EPS forward at the earnings growth rate (capped 25%/yr) and applies the forward P/E as an exit multiple.",
+    "5Y CAGR":   "Implied compound annual return from today's price to the 5-year estimate. Useful for comparing opportunity cost across names.",
+    "Signal":    "Overall valuation signal based on the fraction of metrics that score green. ≥55% green = Undervalued, <25% green = Overvalued, otherwise Fair.",
+    "Score":     "Composite score 0–1. Weighted average of DCF, Fundamentals, and Quality pillars. Growth stocks use adjusted weights and include revenue/earnings growth in quality. Higher = more attractive.",
+}
+
 
 def _color_row(row: "pd.Series") -> list:
-    """Return a list of CSS strings for one row, keyed to its Signal value."""
     bg = _ROW_BG.get(row["Signal"], "")
     return [bg] * len(row)
 
@@ -65,9 +85,19 @@ def render_index_tab(results: List[ValuationResult], index_name: str) -> None:
 
     df = pd.DataFrame(rows)
     styled = df.style.apply(_color_row, axis=1)
-    st.dataframe(styled, hide_index=True, use_container_width=True)
+
+    col_config = {
+        col: st.column_config.TextColumn(col, help=help_text)
+        for col, help_text in _COL_HELP.items()
+        if col in df.columns
+    }
+
+    st.dataframe(styled, column_config=col_config, hide_index=True, use_container_width=True)
 
     st.markdown("---")
     st.subheader("Stock Details")
     for r in results:
         render_stock_expander(r)
+
+    st.markdown("---")
+    render_metric_legend()
