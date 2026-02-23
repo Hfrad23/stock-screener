@@ -100,13 +100,75 @@ qqq_results = sorted(
 )
 
 # ── Tabs ──────────────────────────────────────────────────────────────────────
-tab_spy, tab_qqq, tab_ask = st.tabs(["S&P 500 Top 25", "QQQ Top 25", "Ask the Analyst"])
+tab_spy, tab_qqq, tab_lookup, tab_ask = st.tabs(["S&P 500 Top 25", "QQQ Top 25", "Stock Lookup", "Ask the Analyst"])
 
 with tab_spy:
     render_index_tab(spy_results, "S&P 500 Top 25")
 
 with tab_qqq:
     render_index_tab(qqq_results, "QQQ Top 25")
+
+with tab_lookup:
+    st.subheader("Stock Lookup")
+    st.caption(
+        "Enter any ticker symbol traded on US markets to get the full valuation analysis — "
+        "same metrics, same DCF methodology, and same refresh controls as the index tabs."
+    )
+
+    col_input, col_btn = st.columns([4, 1])
+    with col_input:
+        raw_input = st.text_input(
+            "Ticker",
+            placeholder="e.g. TSLA, JPM, BRK-B",
+            label_visibility="collapsed",
+            key="lookup_input",
+        )
+    with col_btn:
+        search_clicked = st.button("Search", use_container_width=True, key="lookup_search")
+
+    if search_clicked and raw_input.strip():
+        st.session_state.lookup_ticker = raw_input.strip().upper()
+
+    lookup_ticker = st.session_state.get("lookup_ticker", "")
+
+    if lookup_ticker:
+        # If already in the main universe, reuse the already-computed result
+        if lookup_ticker in ticker_to_result:
+            st.info(f"{lookup_ticker} is part of the index universe — showing data fetched with the main lists.")
+            render_index_tab([ticker_to_result[lookup_ticker]], lookup_ticker)
+        else:
+            lookup_tuple = (lookup_ticker,)
+            with st.spinner(f"Fetching data for {lookup_ticker}…"):
+                lookup_fund  = fetch_fundamentals(lookup_tuple)
+                lookup_price = fetch_prices(lookup_tuple)
+
+            if not lookup_fund or not lookup_price:
+                st.error(f"No data found for '{lookup_ticker}'. Verify the ticker symbol and try again.")
+            else:
+                lookup_results = run_valuation(
+                    lookup_fund, lookup_price, wacc, terminal_growth, projection_years
+                )
+                if not lookup_results:
+                    st.error(f"Could not compute valuation for '{lookup_ticker}'.")
+                else:
+                    lf_ts = lookup_fund[0].fetched_at
+                    lp_ts = lookup_price[0].updated_at
+
+                    rc1, rc2, rb1, rb2 = st.columns([3, 3, 1.5, 2])
+                    with rc1:
+                        st.caption(f"Fundamentals as of: {lf_ts.strftime('%Y-%m-%d %H:%M UTC')}")
+                    with rc2:
+                        st.caption(f"Prices as of: {lp_ts.strftime('%Y-%m-%d %H:%M UTC')}")
+                    with rb1:
+                        if st.button("Refresh Prices", key="lookup_ref_prices"):
+                            fetch_prices.clear()
+                            st.rerun()
+                    with rb2:
+                        if st.button("Refresh Fundamentals", key="lookup_ref_fund"):
+                            fetch_fundamentals.clear()
+                            st.rerun()
+
+                    render_index_tab(lookup_results, lookup_ticker)
 
 with tab_ask:
     _api_key = os.getenv("ANTHROPIC_API_KEY", "")
