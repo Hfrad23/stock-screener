@@ -1,0 +1,28 @@
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# macOS
+.DS_Store
+
+# App data / cache
+.cache/
+*.pkl
+data/raw_data.pkl
+
+# Streamlit
+.streamlit/
+
+# Environment / secrets
+.env
+*.env
