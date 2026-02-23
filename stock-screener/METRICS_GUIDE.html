@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<style>
+  body { font-family: -apple-system, Helvetica, Arial, sans-serif; max-width: 860px;
+         margin: 40px auto; padding: 0 20px; color: #1a1a1a; font-size: 14px; line-height: 1.6; }
+  h1   { font-size: 22px; border-bottom: 2px solid #333; padding-bottom: 8px; }
+  h2   { font-size: 18px; color: #1a3a5c; margin-top: 32px; border-bottom: 1px solid #ccc; padding-bottom: 4px; }
+  h3   { font-size: 15px; color: #2c5f8a; margin-top: 20px; }
+  table{ border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 13px; }
+  th   { background: #1a3a5c; color: white; padding: 7px 10px; text-align: left; }
+  td   { padding: 6px 10px; border-bottom: 1px solid #ddd; }
+  tr:nth-child(even) td { background: #f4f8fb; }
+  code { background: #f0f0f0; padding: 1px 4px; border-radius: 3px; font-size: 12px; }
+  hr   { border: none; border-top: 1px solid #ddd; margin: 24px 0; }
+  strong { color: #1a3a5c; }
+</style>
+</head><body>
+<h1>Metrics Reference Guide — S&P 500 Value Screener</h1>
+<p>A plain-English explanation of every metric used in the screener,<br>what it measures, and what to look for when evaluating a stock.</p>
+<hr>
+<h2>VALUATION METRICS</h2>
+<em>(Lower is generally better — you're paying less for what the company produces)</em>
+<hr>
+<h3>1. P/E — Price-to-Earnings Ratio</h3>
+<strong>What it is:</strong> Current share price divided by earnings per share (EPS).
+It tells you how many dollars you're paying for every $1 of profit.
+<strong>Formula:</strong> <code>Share Price ÷ Earnings Per Share</code>
+<table><tbody>
+<tr><th>Range</th><th>What it signals</th></tr>
+<tr><td>< 10</td><td>Very cheap — possible deep value or a struggling business</td></tr>
+<tr><td>10–15</td><td>Cheap to fair — classic value territory</td></tr>
+<tr><td>15–20</td><td>Fair — roughly in line with the long-run S&P 500 average</td></tr>
+<tr><td>20–30</td><td>Moderately expensive — growth is being priced in</td></tr>
+<tr><td>> 30</td><td>Expensive — requires strong growth to justify</td></tr>
+</tbody></table>
+<strong>Favorable for a 5-year horizon:</strong> Under 15, ideally under 12.
+<strong>Sector caveat:</strong> Banks and insurers often trade at 8–12×; tech at 20–35× is normal.
+<hr>
+<h3>2. P/FCF — Price-to-Free Cash Flow</h3>
+<strong>What it is:</strong> Share price divided by free cash flow per share.
+Free cash flow (FCF) = operating cash flow minus capital expenditures.
+This is often considered MORE reliable than P/E because earnings can be
+manipulated with accounting, but cash in the bank is real.
+<strong>Formula:</strong> <code>Market Cap ÷ Free Cash Flow</code>
+<table><tbody>
+<tr><th>Range</th><th>What it signals</th></tr>
+<tr><td>< 10</td><td>Very cheap — generating a lot of cash relative to price</td></tr>
+<tr><td>10–15</td><td>Attractive — solid cash generation</td></tr>
+<tr><td>15–20</td><td>Fair</td></tr>
+<tr><td>20–30</td><td>Pricey — growth expectations baked in</td></tr>
+<tr><td>> 30</td><td>Expensive — need high FCF growth to justify</td></tr>
+</tbody></table>
+<strong>Favorable for a 5-year horizon:</strong> Under 15.
+<strong>Why it matters more than P/E:</strong> Companies can show accounting profits
+while burning cash. P/FCF cuts through that.
+<hr>
+<h3>3. EV/EBITDA — Enterprise Value to EBITDA</h3>
+<strong>What it is:</strong> The total cost to acquire the entire business (equity + debt - cash)
+divided by operating earnings before interest, taxes, depreciation & amortization.
+This is the metric used most often in M&A because it's capital-structure neutral
+— it doesn't matter how the company is financed.
+<strong>Formula:</strong> <code>(Market Cap + Debt - Cash) ÷ EBITDA</code>
+<table><tbody>
+<tr><th>Range</th><th>What it signals</th></tr>
+<tr><td>< 6</td><td>Very cheap — common in commodities, financials</td></tr>
+<tr><td>6–10</td><td>Attractive — value territory for most sectors</td></tr>
+<tr><td>10–14</td><td>Fair — average for the S&P 500</td></tr>
+<tr><td>14–20</td><td>Pricey</td></tr>
+<tr><td>> 20</td><td>Expensive — tech/growth premium</td></tr>
+</tbody></table>
+<strong>Favorable for a 5-year horizon:</strong> Under 10.
+<strong>Why it's useful:</strong> Works across sectors because it ignores debt and taxes.
+<hr>
+<h3>4. P/B — Price-to-Book Ratio</h3>
+<strong>What it is:</strong> Share price divided by book value per share.
+Book value = total assets minus total liabilities — essentially what the
+company would be worth if it liquidated everything today.
+<strong>Formula:</strong> <code>Share Price ÷ (Total Assets - Total Liabilities) per share</code>
+<table><tbody>
+<tr><th>Range</th><th>What it signals</th></tr>
+<tr><td>< 1.0</td><td>Trading below liquidation value — rare, often a red flag OR deep value</td></tr>
+<tr><td>1–2</td><td>Cheap — paying close to asset value</td></tr>
+<tr><td>2–3</td><td>Fair</td></tr>
+<tr><td>3–5</td><td>Pricey — intangibles or brand value not on balance sheet</td></tr>
+<tr><td>> 5</td><td>Expensive for asset-heavy companies; normal for capital-light tech</td></tr>
+</tbody></table>
+<strong>Favorable for a 5-year horizon:</strong> Under 2.5 (sector-adjusted — banks at 1×, tech at 5× is fine).
+<strong>Best for:</strong> Banks, insurers, industrials, real estate. Less useful for software.
+<hr>
+<h3>5. PEG — Price/Earnings-to-Growth Ratio</h3>
+<strong>What it is:</strong> P/E divided by expected earnings growth rate.
+It adjusts the P/E for growth — a company growing at 20% deserves a
+higher P/E than one growing at 2%. PEG makes that comparison fair.
+<strong>Formula:</strong> <code>P/E Ratio ÷ Expected Annual Earnings Growth Rate (%)</code>
+<table><tbody>
+<tr><th>Range</th><th>What it signals</th></tr>
+<tr><td>< 0.5</td><td>Potentially very undervalued relative to growth</td></tr>
+<tr><td>0.5–1.0</td><td>Attractive — growth not fully priced in</td></tr>
+<tr><td>1.0</td><td>Fair value — paying exactly for the growth you get</td></tr>
+<tr><td>1–1.5</td><td>Slightly elevated</td></tr>
+<tr><td>> 1.5</td><td>Overpaying for growth</td></tr>
+</tbody></table>
+<strong>Favorable for a 5-year horizon:</strong> Under 1.0, ideally under 0.75.
+<strong>Rule of thumb:</strong> PEG < 1 = good deal. Peter Lynch popularised this metric.
+<hr>
+<h2>QUALITY METRICS</h2>
+<em>(Higher is generally better — measuring how well the business performs)</em>
+<hr>
+<h3>6. ROE — Return on Equity</h3>
+<strong>What it is:</strong> Net income divided by shareholders' equity.
+Measures how efficiently a company uses shareholder money to generate profit.
+A high ROE means management is good at compounding your investment.
+<strong>Formula:</strong> <code>Net Income ÷ Shareholders' Equity</code>
+<table><tbody>
+<tr><th>Range</th><th>What it signals</th></tr>
+<tr><td>< 5%</td><td>Weak — barely covering cost of equity</td></tr>
+<tr><td>5–10%</td><td>Below average</td></tr>
+<tr><td>10–15%</td><td>Solid — decent business</td></tr>
+<tr><td>15–20%</td><td>Good — competitive advantage likely</td></tr>
+<tr><td>> 20%</td><td>Excellent — strong moat (think Apple, Visa, MSFT)</td></tr>
+</tbody></table>
+<strong>Favorable for a 5-year horizon:</strong> 15%+ consistently over multiple years.
+<strong>Caveat:</strong> Very high ROE (>50%) can be inflated by heavy debt — check D/E too.
+<hr>
+<h3>7. ROA — Return on Assets</h3>
+<strong>What it is:</strong> Net income divided by total assets.
+Unlike ROE, this isn't affected by how much debt a company carries.
+It shows how efficiently assets are deployed regardless of financing.
+<strong>Formula:</strong> <code>Net Income ÷ Total Assets</code>
+<table><tbody>
+<tr><th>Range</th><th>What it signals</th></tr>
+<tr><td>< 2%</td><td>Poor — asset-intensive business with thin margins</td></tr>
+<tr><td>2–5%</td><td>Below average</td></tr>
+<tr><td>5–10%</td><td>Good</td></tr>
+<tr><td>> 10%</td><td>Excellent — capital-light business with strong returns</td></tr>
+</tbody></table>
+<strong>Favorable for a 5-year horizon:</strong> 5%+.
+<strong>Best for:</strong> Comparing companies within the same sector.
+<hr>
+<h3>8. Operating Margin</h3>
+<strong>What it is:</strong> Operating income as a percentage of revenue.
+Measures how much profit the company keeps from each dollar of sales
+after paying operating costs — but before interest and taxes.
+<strong>Formula:</strong> <code>Operating Income ÷ Revenue</code>
+<table><tbody>
+<tr><th>Range</th><th>What it signals</th></tr>
+<tr><td>< 5%</td><td>Thin margins — vulnerable to cost shocks</td></tr>
+<tr><td>5–10%</td><td>Low but acceptable in some industries (retail, airlines)</td></tr>
+<tr><td>10–20%</td><td>Healthy</td></tr>
+<tr><td>20–30%</td><td>Strong — pricing power or cost efficiency</td></tr>
+<tr><td>> 30%</td><td>Exceptional — classic moat indicator (software, pharma)</td></tr>
+</tbody></table>
+<strong>Favorable for a 5-year horizon:</strong> 15%+, and stable or expanding over time.
+<strong>Sector norms:</strong> Grocery retail: 2–4%. Software: 20–40%. Pharma: 15–30%.
+<hr>
+<h3>9. Debt-to-Equity (D/E) Ratio</h3>
+<strong>What it is:</strong> Total debt divided by total shareholders' equity.
+Measures financial leverage — how much of the business is funded by
+borrowed money vs. owner money. High debt = higher risk, especially in
+rising interest rate environments.
+<strong>Formula:</strong> <code>Total Debt ÷ Total Shareholders' Equity</code>
+<table><tbody>
+<tr><th>Range</th><th>What it signals</th></tr>
+<tr><td>< 0.3</td><td>Very conservative — fortress balance sheet</td></tr>
+<tr><td>0.3–0.75</td><td>Healthy leverage</td></tr>
+<tr><td>0.75–1.5</td><td>Moderate — manageable for most businesses</td></tr>
+<tr><td>1.5–3.0</td><td>Elevated — watch interest coverage</td></tr>
+<tr><td>> 3.0</td><td>High risk — one bad year could cause distress</td></tr>
+</tbody></table>
+<strong>Favorable for a 5-year horizon:</strong> Under 1.0. Under 0.5 is ideal.
+<strong>Sector caveat:</strong> Banks and utilities structurally carry high D/E and
+that's normal — use sector-adjusted comparisons for those.
+<hr>
+<h2>DCF METRIC</h2>
+<h3>10. Margin of Safety (DCF)</h3>
+<strong>What it is:</strong> The gap between a stock's estimated intrinsic value
+(from our Discounted Cash Flow model) and its current market price.
+The larger the gap, the more cushion you have if your assumptions are wrong.
+<strong>Formula:</strong> <code>(Intrinsic Value - Current Price) ÷ Intrinsic Value</code>
+<table><tbody>
+<tr><th>Range</th><th>What it signals</th></tr>
+<tr><td>Negative</td><td>Overvalued — trading above DCF estimate</td></tr>
+<tr><td>0–20%</td><td>Fairly valued or small discount</td></tr>
+<tr><td>20–40%</td><td>Attractive — meaningful discount to intrinsic value</td></tr>
+<tr><td>40–60%</td><td>Very attractive — significant undervaluation</td></tr>
+<tr><td>> 60%</td><td>Deep value or the DCF assumptions may be too optimistic</td></tr>
+</tbody></table>
+<strong>Favorable for a 5-year horizon:</strong> 25%+ margin of safety.
+<strong>Important caveat:</strong> A DCF is only as good as its inputs. The model uses
+historical FCF growth rates capped at 25%, a 10% discount rate, and 3%
+terminal growth. Treat it as a directional signal, not a precise target.
+<hr>
+<h2>QUICK REFERENCE CHEAT SHEET</h2>
+<table><tbody>
+<tr><th>Metric</th><th>Ideal Range</th><th>What you want</th></tr>
+<tr><td>P/E</td><td>< 15</td><td>Low</td></tr>
+<tr><td>P/FCF</td><td>< 15</td><td>Low</td></tr>
+<tr><td>EV/EBITDA</td><td>< 10</td><td>Low</td></tr>
+<tr><td>P/B</td><td>< 2.5</td><td>Low</td></tr>
+<tr><td>PEG</td><td>< 1.0</td><td>Low</td></tr>
+<tr><td>ROE</td><td>> 15%</td><td>High</td></tr>
+<tr><td>ROA</td><td>> 5%</td><td>High</td></tr>
+<tr><td>Operating Margin</td><td>> 15%</td><td>High</td></tr>
+<tr><td>Debt/Equity</td><td>< 1.0</td><td>Low</td></tr>
+<tr><td>DCF Margin of Safety</td><td>> 25%</td><td>High</td></tr>
+</tbody></table>
+<hr>
+<h2>A NOTE ON SECTOR CONTEXT</h2>
+<p>These are general benchmarks for the <strong>broad market</strong>. Individual sectors<br>have very different norms:</p>
+<table><tbody>
+<tr><th>Sector</th><th>P/E norm</th><th>P/FCF norm</th><th>Margin norm</th></tr>
+<tr><td>Technology</td><td>20–35</td><td>20–40</td><td>20–40%</td></tr>
+<tr><td>Financials</td><td>8–14</td><td>5–10</td><td>varies (use ROE instead)</td></tr>
+<tr><td>Health Care</td><td>15–25</td><td>15–25</td><td>10–25%</td></tr>
+<tr><td>Consumer Staples</td><td>18–25</td><td>18–25</td><td>8–15%</td></tr>
+<tr><td>Industrials</td><td>15–22</td><td>15–25</td><td>8–15%</td></tr>
+<tr><td>Energy</td><td>8–15</td><td>6–12</td><td>5–15%</td></tr>
+<tr><td>Utilities</td><td>14–18</td><td>10–18</td><td>15–25%</td></tr>
+<tr><td>Real Estate (REITs)</td><td>use P/FFO</td><td>use P/FFO</td><td>30–50%</td></tr>
+<tr><td>Communication Services</td><td>12–20</td><td>10–20</td><td>15–30%</td></tr>
+<tr><td>Consumer Discretionary</td><td>15–25</td><td>15–25</td><td>5–12%</td></tr>
+<tr><td>Materials</td><td>12–18</td><td>10–18</td><td>8–15%</td></tr>
+</tbody></table>
+<p>The screener accounts for this by ranking each stock <strong>within its own sector</strong><br>rather than against the full market.</p>
+<hr>
+<em>This guide is for educational purposes. Always do your own research before investing.</em>
+</body></html>
