@@ -69,6 +69,12 @@ def _fetch_one(ticker: str) -> StockFundamentals:
         except (TypeError, ValueError):
             return None
 
+    def _safe_positive(key) -> Optional[float]:
+        """Like _safe() but returns None for zero/negative values.
+        Used for ratios where negative values are meaningless (P/E, EV/EBITDA, PEG, P/B)."""
+        val = _safe(key)
+        return val if (val is not None and val > 0) else None
+
     # TTM FCF — use freeCashflow from info as primary source (most reliable in yfinance 1.x)
     ttm_fcf = _safe("freeCashflow")
     if ttm_fcf is None:
@@ -99,11 +105,11 @@ def _fetch_one(ticker: str) -> StockFundamentals:
         shares_outstanding=_safe("sharesOutstanding"),
         ttm_fcf=ttm_fcf,
         fcf_growth_rate=_fcf_cagr(cf),
-        pe_ratio=_safe("trailingPE"),
-        forward_pe=_safe("forwardPE"),
-        pb_ratio=_safe("priceToBook"),
-        peg_ratio=_safe("trailingPegRatio"),   # pegRatio is None in yfinance 1.x
-        ev_ebitda=_safe("enterpriseToEbitda"),
+        pe_ratio=_safe_positive("trailingPE"),
+        forward_pe=_safe_positive("forwardPE"),
+        pb_ratio=_safe_positive("priceToBook"),
+        peg_ratio=_safe_positive("trailingPegRatio"),   # pegRatio is None in yfinance 1.x
+        ev_ebitda=_safe_positive("enterpriseToEbitda"),
         roe=_safe("returnOnEquity"),
         operating_margins=_safe("operatingMargins"),
         profit_margins=_safe("profitMargins"),

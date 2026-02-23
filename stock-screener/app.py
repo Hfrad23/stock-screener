@@ -114,6 +114,11 @@ with tab_lookup:
         "Enter any ticker symbol traded on US markets to get the full valuation analysis — "
         "same metrics, same DCF methodology, and same refresh controls as the index tabs."
     )
+    st.caption(
+        "**Note:** Financial stocks (banks, insurance, brokerages) will show N/A for FCF, "
+        "EV/EBITDA, and Debt/Equity — these metrics genuinely do not apply to their business model. "
+        "REITs use FFO rather than EPS, so the 5-year estimate will also be N/A."
+    )
 
     col_input, col_btn = st.columns([4, 1])
     with col_input:
