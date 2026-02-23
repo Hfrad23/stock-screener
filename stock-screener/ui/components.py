@@ -18,6 +18,12 @@ _BADGE_CONFIG = {
     "insufficient_data": ("INSUFFICIENT DATA", COLOR_GRAY),
 }
 
+_PROFILE_BADGE = {
+    "growth": f'<span style="background:#1a3a5c; color:#60b4ff; font-size:0.78em; padding:2px 7px; border-radius:4px; font-weight:bold;">GROWTH</span>',
+    "value":  f'<span style="background:#1a3a2a; color:#60d48a; font-size:0.78em; padding:2px 7px; border-radius:4px; font-weight:bold;">VALUE</span>',
+    "blend":  f'<span style="background:#2a2a2a; color:#aaaaaa; font-size:0.78em; padding:2px 7px; border-radius:4px; font-weight:bold;">BLEND</span>',
+}
+
 
 def signal_badge(signal: str) -> str:
     label, color = _BADGE_CONFIG.get(signal, ("N/A", COLOR_GRAY))
@@ -88,6 +94,17 @@ def render_stock_expander(result: ValuationResult) -> None:
 
     with st.expander(header):
         sig = result.metric_signals
+        profile_badge = _PROFILE_BADGE.get(result.growth_profile, "")
+        scoring_note = {
+            "growth": "Scored as <b>growth stock</b>: adjusted multiple thresholds, revenue &amp; earnings growth included in quality pillar (DCF 25% / Fundamentals 35% / Quality 40%)",
+            "value":  "Scored as <b>value stock</b>: traditional multiple thresholds (DCF 40% / Fundamentals 35% / Quality 25%)",
+            "blend":  "Scored as <b>blend</b>: traditional multiple thresholds (DCF 40% / Fundamentals 35% / Quality 25%)",
+        }.get(result.growth_profile, "")
+        st.markdown(
+            f"{profile_badge} &nbsp; <small style='color:#888;'>{scoring_note}</small>",
+            unsafe_allow_html=True,
+        )
+        st.markdown("")
 
         col1, col2, col3 = st.columns(3)
 
@@ -144,9 +161,14 @@ def render_stock_expander(result: ValuationResult) -> None:
         # ── Column 3: Growth & Outlook ────────────────────────────────────────
         with col3:
             st.markdown("**Growth (YoY)**")
+            is_growth = result.growth_profile == "growth"
+            rev_sig = sig.get("revenue_growth", "na") if is_growth else "na"
+            eps_sig = sig.get("earnings_growth", "na") if is_growth else "na"
             for html in [
-                _plain("Revenue Growth",  result.revenue_growth,  "pct"),
-                _plain("Earnings Growth", result.earnings_growth, "pct"),
+                _row("Revenue Growth",  result.revenue_growth,  rev_sig, "pct") if is_growth
+                    else _plain("Revenue Growth",  result.revenue_growth,  "pct"),
+                _row("Earnings Growth", result.earnings_growth, eps_sig, "pct") if is_growth
+                    else _plain("Earnings Growth", result.earnings_growth, "pct"),
             ]:
                 st.markdown(html, unsafe_allow_html=True)
 

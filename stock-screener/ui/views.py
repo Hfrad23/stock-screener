@@ -56,6 +56,7 @@ def render_index_tab(results: List[ValuationResult], index_name: str) -> None:
             "P/FCF":     _fmt(r.p_fcf, ".1f"),
             "EV/EBITDA": _fmt(r.ev_ebitda, ".1f"),
             "PEG":       _fmt(r.peg_ratio, ".2f"),
+            "Profile":   {"growth": "G", "value": "V", "blend": "B"}.get(r.growth_profile, "B"),
             "5Y Est.":   _fmt(r.five_yr_price, ".2f", "$"),
             "5Y CAGR":   _fmt(r.five_yr_cagr, ".1%") if r.five_yr_cagr is not None else "N/A",
             "Signal":    _SIGNAL_EMOJI.get(r.signal, "⚪"),

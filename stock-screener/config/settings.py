@@ -56,6 +56,38 @@ DE_YELLOW       = 2.00    # 0.5–2.0x → yellow; above 2.0x → red
 GROWTH_CAP_5YR      = 0.25   # cap sustained growth at 25%/yr
 EXIT_MULTIPLE_CAP   = 40.0   # cap exit P/E multiple at 40x
 
+# ── Growth profile classification ─────────────────────────────────────────────
+# A stock earns a "growth" classification when it shows at least 2 of 3 signals:
+#   - revenue growth > 15%
+#   - earnings growth > 15%
+#   - P/E > 30 (market is pricing in growth)
+GROWTH_REV_THRESHOLD      = 0.15
+GROWTH_EPS_THRESHOLD      = 0.15
+GROWTH_PE_THRESHOLD       = 30.0
+
+# Growth stock valuation thresholds (multiples are expected to be higher)
+PE_GREEN_GROWTH           = 35
+PE_YELLOW_GROWTH          = 60
+FWD_PE_GREEN_GROWTH       = 25
+FWD_PE_YELLOW_GROWTH      = 45
+P_FCF_GREEN_GROWTH        = 30
+P_FCF_YELLOW_GROWTH       = 60
+EV_EBITDA_GREEN_GROWTH    = 25
+EV_EBITDA_YELLOW_GROWTH   = 40
+PEG_GREEN_GROWTH          = 1.0   # tighter PEG threshold — the key metric for growth
+PEG_YELLOW_GROWTH         = 2.0
+
+# Growth quality thresholds (revenue + earnings growth are scored metrics)
+REV_GROWTH_GREEN          = 0.20   # >20% revenue growth → green
+REV_GROWTH_YELLOW         = 0.10   # 10–20% → yellow; <10% → red
+EPS_GROWTH_GREEN          = 0.20   # >20% earnings growth → green
+EPS_GROWTH_YELLOW         = 0.10   # 10–20% → yellow; <10% → red
+
+# Growth scoring weights (DCF less reliable; quality/growth more important)
+W_DCF_GROWTH  = 0.25
+W_FUND_GROWTH = 0.35
+W_QUAL_GROWTH = 0.40
+
 # ── Colors ────────────────────────────────────────────────────────────────────
 COLOR_GREEN  = "#00c853"
 COLOR_YELLOW = "#ffd600"
@@ -116,9 +148,10 @@ class ValuationResult(BaseModel):
     beta: Optional[float] = None
     operating_margins: Optional[float] = None
     profit_margins: Optional[float] = None
-    five_yr_price: Optional[float] = None    # projected price in 5 years
-    five_yr_cagr: Optional[float] = None     # implied annualized return to that target
-    five_yr_growth_used: Optional[float] = None  # growth rate applied (for transparency)
+    five_yr_price: Optional[float] = None
+    five_yr_cagr: Optional[float] = None
+    five_yr_growth_used: Optional[float] = None
+    growth_profile: Literal["growth", "value", "blend"] = "blend"
     composite_score: float
     signal: Literal["undervalued", "fair", "overvalued", "insufficient_data"]
     metric_signals: Dict[str, Literal["green", "yellow", "red", "na"]]
