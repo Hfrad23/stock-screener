@@ -12,6 +12,7 @@ from data.fetcher import fetch_fundamentals, fetch_prices
 from analysis.valuation import run_valuation
 from ui.views import render_index_tab
 from ai.analyst import build_context, ask_analyst
+from data.watchlist import load_watchlist, add_ticker, remove_ticker
 
 st.set_page_config(
     page_title="Stock Screener",
@@ -100,7 +101,80 @@ qqq_results = sorted(
 )
 
 # ── Tabs ──────────────────────────────────────────────────────────────────────
-tab_spy, tab_qqq, tab_lookup, tab_ask = st.tabs(["S&P 500 Top 25", "QQQ Top 25", "Stock Lookup", "Ask the Analyst"])
+tab_home, tab_spy, tab_qqq, tab_lookup, tab_watch, tab_ask = st.tabs(
+    ["Home", "S&P 500 Top 25", "QQQ Top 25", "Stock Lookup", "Watchlist", "Ask the Analyst"]
+)
+
+with tab_home:
+    # ── Universe stats ──────────────────────────────────────────────────────────
+    n_undervalued = sum(1 for r in all_results if r.signal == "undervalued")
+    n_fair        = sum(1 for r in all_results if r.signal == "fair")
+    n_overvalued  = sum(1 for r in all_results if r.signal == "overvalued")
+    n_insuf       = sum(1 for r in all_results if r.signal == "insufficient_data")
+
+    top_score  = max(all_results, key=lambda r: r.composite_score, default=None)
+    top_mos    = max(
+        (r for r in all_results if r.margin_of_safety is not None),
+        key=lambda r: r.margin_of_safety,
+        default=None,
+    )
+
+    st.subheader("Universe Summary")
+    if fund_ts:
+        st.caption(f"Fundamentals as of {fund_ts.strftime('%Y-%m-%d %H:%M UTC')} · Prices as of {price_ts.strftime('%Y-%m-%d %H:%M UTC') if price_ts else 'N/A'}")
+
+    st.markdown("---")
+
+    # ── Signal breakdown ────────────────────────────────────────────────────────
+    c1, c2, c3, c4, c5 = st.columns(5)
+    c1.metric("Tickers tracked", len(all_results))
+    c2.metric("Undervalued", n_undervalued)
+    c3.metric("Fair value", n_fair)
+    c4.metric("Overvalued", n_overvalued)
+    c5.metric("Insufficient data", n_insuf)
+
+    st.markdown("---")
+
+    # ── Highlights ──────────────────────────────────────────────────────────────
+    h1, h2 = st.columns(2)
+    with h1:
+        st.markdown("**Top composite score**")
+        if top_score:
+            st.markdown(f"**{top_score.ticker}** — {top_score.company_name}")
+            st.markdown(f"Score: `{top_score.composite_score:.2f}` · Signal: `{top_score.signal}` · ${top_score.price:.2f}")
+    with h2:
+        st.markdown("**Highest margin of safety (DCF)**")
+        if top_mos:
+            st.markdown(f"**{top_mos.ticker}** — {top_mos.company_name}")
+            st.markdown(f"MOS: `{top_mos.margin_of_safety:.1%}` · DCF: `${top_mos.dcf_value:.2f}` · Price: `${top_mos.price:.2f}`")
+
+    st.markdown("---")
+
+    # ── Top 10 by composite score ───────────────────────────────────────────────
+    st.markdown("**Top 10 by composite score (full universe)**")
+    top10 = sorted(all_results, key=lambda r: r.composite_score, reverse=True)[:10]
+
+    _SIGNAL_LABEL = {
+        "undervalued":       "Undervalued",
+        "fair":              "Fair",
+        "overvalued":        "Overvalued",
+        "insufficient_data": "Insuf. data",
+    }
+
+    import pandas as pd
+    home_rows = []
+    for r in top10:
+        home_rows.append({
+            "Ticker":  r.ticker,
+            "Company": r.company_name,
+            "Price":   f"${r.price:.2f}",
+            "Score":   f"{r.composite_score:.2f}",
+            "Signal":  _SIGNAL_LABEL.get(r.signal, r.signal),
+            "MOS":     f"{r.margin_of_safety:.1%}" if r.margin_of_safety is not None else "N/A",
+            "P/E":     f"{r.pe_ratio:.1f}" if r.pe_ratio else "N/A",
+            "Fwd P/E": f"{r.forward_pe:.1f}" if r.forward_pe else "N/A",
+        })
+    st.dataframe(pd.DataFrame(home_rows), use_container_width=True, hide_index=True)
 
 with tab_spy:
     render_index_tab(spy_results, "S&P 500 Top 25")
@@ -174,6 +248,93 @@ with tab_lookup:
                             st.rerun()
 
                     render_index_tab(lookup_results, lookup_ticker)
+
+with tab_watch:
+    st.subheader("Watchlist")
+    st.caption(
+        "Track specific tickers with the full valuation analysis. "
+        "Watchlist persists across app restarts."
+    )
+    st.caption(
+        "**Note:** Financial stocks (banks, insurance, brokerages) will show N/A for FCF, "
+        "EV/EBITDA, and Debt/Equity — these metrics do not apply to their business model. "
+        "REITs will also show N/A for the 5-year estimate."
+    )
+
+    # ── Add ticker ─────────────────────────────────────────────────────────────
+    col_wi, col_wb = st.columns([4, 1])
+    with col_wi:
+        watch_input = st.text_input(
+            "Add Ticker",
+            placeholder="e.g. AAPL, TSLA, BRK-B",
+            label_visibility="collapsed",
+            key="watchlist_input",
+        )
+    with col_wb:
+        add_clicked = st.button("Add", use_container_width=True, key="watchlist_add")
+
+    if add_clicked and watch_input.strip():
+        _, status = add_ticker(watch_input.strip())
+        if status == "added":
+            st.success(f"{watch_input.strip().upper()} added to watchlist.")
+            st.rerun()
+        elif status == "duplicate":
+            st.info(f"{watch_input.strip().upper()} is already in your watchlist.")
+
+    # ── Load watchlist ──────────────────────────────────────────────────────────
+    watchlist = load_watchlist()
+
+    if not watchlist:
+        st.info("Your watchlist is empty. Add a ticker above.")
+    else:
+        # ── Remove chips ────────────────────────────────────────────────────────
+        st.markdown("**Watching:**")
+        n_cols = min(len(watchlist), 8)
+        chip_cols = st.columns(n_cols)
+        for i, t in enumerate(watchlist):
+            with chip_cols[i % n_cols]:
+                if st.button(f"✕ {t}", key=f"watch_remove_{t}"):
+                    remove_ticker(t)
+                    st.rerun()
+
+        st.markdown("---")
+
+        # ── Fetch ───────────────────────────────────────────────────────────────
+        in_universe = [t for t in watchlist if t in ticker_to_result]
+        needs_fetch  = [t for t in watchlist if t not in ticker_to_result]
+
+        watch_results = [ticker_to_result[t] for t in in_universe]
+
+        if needs_fetch:
+            fetch_tuple = tuple(sorted(needs_fetch))
+            with st.spinner(f"Fetching data for {', '.join(needs_fetch)}…"):
+                wf = fetch_fundamentals(fetch_tuple)
+                wp = fetch_prices(fetch_tuple)
+            if wf and wp:
+                extra = run_valuation(wf, wp, wacc, terminal_growth, projection_years)
+                watch_results.extend(extra)
+            else:
+                failed = [t for t in needs_fetch if t not in {r.ticker for r in watch_results}]
+                if failed:
+                    st.warning(f"Could not fetch data for: {', '.join(failed)}. Verify ticker symbols.")
+
+        # ── Refresh buttons ─────────────────────────────────────────────────────
+        wrb1, wrb2 = st.columns([1.5, 2])
+        with wrb1:
+            if st.button("Refresh Prices", key="watch_ref_prices"):
+                fetch_prices.clear()
+                st.rerun()
+        with wrb2:
+            if st.button("Refresh Fundamentals", key="watch_ref_fund"):
+                fetch_fundamentals.clear()
+                st.rerun()
+
+        # ── Render ──────────────────────────────────────────────────────────────
+        watch_results.sort(key=lambda r: r.composite_score, reverse=True)
+        if watch_results:
+            render_index_tab(watch_results, "Watchlist")
+        else:
+            st.error("No valid valuation results. Check ticker symbols.")
 
 with tab_ask:
     _api_key = os.getenv("ANTHROPIC_API_KEY", "")

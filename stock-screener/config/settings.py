@@ -19,6 +19,9 @@ PRICE_CACHE_TTL        = 300      # 5 minutes
 FUNDAMENTALS_CACHE_TTL = 86400    # 24 hours
 HOLDINGS_CACHE_TTL     = 604800   # 7 days
 
+# ── File paths ─────────────────────────────────────────────────────────────────
+WATCHLIST_PATH = "data/watchlist.json"
+
 # ── Valuation thresholds ──────────────────────────────────────────────────────
 # Calibrated for large-cap growth; lower is better unless noted
 
